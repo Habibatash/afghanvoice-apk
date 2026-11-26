@@ -24,6 +24,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -43,6 +44,7 @@ public class MainActivity extends Activity {
     private WebView webView;
     private ProgressBar progress;
     private View errorPanel;
+    private View splashPanel;
     private ValueCallback<Uri[]> filePathCallback;
     private String lastUrl = START_URL;
 
@@ -94,7 +96,62 @@ public class MainActivity extends Activity {
         errorPanel.setVisibility(View.GONE);
         root.addView(errorPanel, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        splashPanel = createSplashPanel();
+        root.addView(splashPanel, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
+    }
+
+    private View createSplashPanel() {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER);
+        panel.setPadding(dp(28), dp(28), dp(28), dp(28));
+        panel.setBackgroundColor(Color.rgb(242, 246, 251));
+
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.mipmap.ic_launcher);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(dp(112), dp(112));
+        logoParams.bottomMargin = dp(18);
+        panel.addView(logo, logoParams);
+
+        TextView title = new TextView(this);
+        title.setText("افغان غږ نشراتي اداره");
+        title.setTextColor(Color.rgb(18, 59, 97));
+        title.setTextSize(24);
+        title.setGravity(Gravity.CENTER);
+        title.setTypeface(android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.BOLD));
+        panel.addView(title, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView subtitle = new TextView(this);
+        subtitle.setText("د خبرونو او خپرونو مدیریتي اپ");
+        subtitle.setTextColor(Color.rgb(105, 122, 139));
+        subtitle.setTextSize(14);
+        subtitle.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        subtitleParams.topMargin = dp(5);
+        panel.addView(subtitle, subtitleParams);
+
+        ProgressBar spinner = new ProgressBar(this);
+        spinner.setIndeterminate(true);
+        spinner.setIndeterminateTintList(android.content.res.ColorStateList.valueOf(Color.rgb(22, 119, 184)));
+        LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(dp(34), dp(34));
+        spinnerParams.topMargin = dp(25);
+        panel.addView(spinner, spinnerParams);
+        return panel;
+    }
+
+    private void hideSplash() {
+        if (splashPanel == null || splashPanel.getVisibility() != View.VISIBLE) return;
+        View oldSplash = splashPanel;
+        oldSplash.animate().alpha(0f).setDuration(220).withEndAction(() -> {
+            if (root != null) root.removeView(oldSplash);
+            if (splashPanel == oldSplash) splashPanel = null;
+        }).start();
     }
 
     private View createErrorPanel() {
@@ -192,6 +249,7 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 lastUrl = url;
                 progress.setVisibility(View.GONE);
+                hideSplash();
                 CookieManager.getInstance().flush();
             }
 
@@ -199,6 +257,7 @@ public class MainActivity extends Activity {
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (request != null && request.isForMainFrame()) {
                     progress.setVisibility(View.GONE);
+                    hideSplash();
                     errorPanel.setVisibility(View.VISIBLE);
                 }
             }

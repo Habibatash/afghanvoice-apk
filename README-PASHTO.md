@@ -50,3 +50,8 @@ GitHub Actions د `assembleDebug` له لارې debug-signed APK جوړوي چې
 ## د build محدودیت
 
 په هغه چاپېریال کې چې دا پروژه جوړه شوې، Android SDK او Gradle نه وو نصب او بهرنی ډاونلوډ هم بند و؛ له همدې امله دلته APK باینري نه ده Compile شوې. د پورته GitHub workflow فایل د APK د جوړولو لپاره ورسره شامل دی.
+
+
+## د پیل پرده او GitHub Actions
+
+اپ اوس د افغان غږ رسمي آیکن، «افغان غږ نشراتي اداره» سرلیک او متحرک باروونکي نښه لرونکې پیل پرده لري. د GitHub Actions جوړولو فایل د `ubuntu-latest` له مخکې نصب شوي Android SDK او `sdkmanager` څخه کار اخلي؛ `setup-android@v3` نور نه کارول کېږي.
