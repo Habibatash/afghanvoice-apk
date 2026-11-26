@@ -212,7 +212,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
-        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.0");
+        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.3");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
             webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
@@ -363,14 +363,20 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (errorPanel != null && errorPanel.getVisibility() == View.VISIBLE) {
             errorPanel.setVisibility(View.GONE);
-            webView.loadUrl(START_URL);
             return;
         }
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
+        if (webView != null) {
+            // The JavaScript handler closes the drawer first. Otherwise the
+            // Activity is backgrounded; WebView history is never traversed.
+            // This avoids returning to wp-login.php and preserves WordPress cookies.
+            webView.evaluateJavascript(
+                    "(function(){return window.AVAAHandleBack ? window.AVAAHandleBack() : 'stay-in-app';})()",
+                    value -> {
+                        if (!"\"menu-closed\"".equals(value)) moveTaskToBack(true);
+                    });
             return;
         }
-        super.onBackPressed();
+        moveTaskToBack(true);
     }
 
     @Override
