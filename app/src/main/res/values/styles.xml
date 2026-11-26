@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="navy">#123B61</color>
+    <color name="icon_blue">#00008B</color>
+    <color name="navy_dark">#0B2945</color>
+    <color name="white">#FFFFFF</color>
+    <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#1677B8</item>
+        <item name="android:statusBarColor">#0B2945</item>
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#F2F5FA</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
