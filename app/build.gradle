@@ -10,8 +10,8 @@ android {
         applicationId 'com.afghanvoice.admin'
         minSdk 23
         targetSdk 35
-        versionCode 2
-        versionName '1.0.3'
+        versionCode 3
+        versionName '1.0.4'
     }
 
     compileOptions {

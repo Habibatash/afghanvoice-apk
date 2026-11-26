@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,6 +48,8 @@ public class MainActivity extends Activity {
     private View splashPanel;
     private ValueCallback<Uri[]> filePathCallback;
     private String lastUrl = START_URL;
+    private long lastBackPressAt = 0L;
+    private static final long DOUBLE_BACK_WINDOW_MS = 2000L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -212,7 +215,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
-        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.3");
+        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.4");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
             webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
@@ -243,6 +246,7 @@ public class MainActivity extends Activity {
                 errorPanel.setVisibility(View.GONE);
                 progress.setVisibility(View.VISIBLE);
                 progress.setProgress(5);
+                lastBackPressAt = 0L;
             }
 
             @Override
@@ -363,20 +367,70 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         if (errorPanel != null && errorPanel.getVisibility() == View.VISIBLE) {
             errorPanel.setVisibility(View.GONE);
+            lastBackPressAt = 0L;
             return;
         }
-        if (webView != null) {
-            // The JavaScript handler closes the drawer first. Otherwise the
-            // Activity is backgrounded; WebView history is never traversed.
-            // This avoids returning to wp-login.php and preserves WordPress cookies.
-            webView.evaluateJavascript(
-                    "(function(){return window.AVAAHandleBack ? window.AVAAHandleBack() : 'stay-in-app';})()",
-                    value -> {
-                        if (!"\"menu-closed\"".equals(value)) moveTaskToBack(true);
-                    });
+        if (webView == null) {
+            handleDoubleBackToExit();
             return;
         }
-        moveTaskToBack(true);
+
+        // First close the app drawer. If it is closed, return through safe
+        // same-site WebView history so a website opened from the app returns
+        // to the exact app page instead of leaving the app.
+        webView.evaluateJavascript(
+                "(function(){return window.AVAAHandleBack ? window.AVAAHandleBack() : 'continue-back';})()",
+                value -> {
+                    if ("\"menu-closed\"".equals(value)) return;
+                    int targetIndex = findPreviousSafeHistoryIndex();
+                    if (targetIndex >= 0) {
+                        android.webkit.WebBackForwardList history = webView.copyBackForwardList();
+                        int delta = targetIndex - history.getCurrentIndex();
+                        lastBackPressAt = 0L;
+                        if (delta != 0) webView.goBackOrForward(delta);
+                        return;
+                    }
+                    handleDoubleBackToExit();
+                });
+    }
+
+    private int findPreviousSafeHistoryIndex() {
+        if (webView == null) return -1;
+        android.webkit.WebBackForwardList history = webView.copyBackForwardList();
+        int current = history.getCurrentIndex();
+        for (int i = current - 1; i >= 0; i--) {
+            android.webkit.WebHistoryItem item = history.getItemAtIndex(i);
+            if (item != null && isSafeInAppHistoryUrl(item.getUrl())) return i;
+        }
+        return -1;
+    }
+
+    private boolean isSafeInAppHistoryUrl(String rawUrl) {
+        if (rawUrl == null || rawUrl.trim().isEmpty()) return false;
+        try {
+            Uri uri = Uri.parse(rawUrl);
+            String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
+            String path = uri.getPath() == null ? "" : uri.getPath().toLowerCase(Locale.ROOT);
+            String action = uri.getQueryParameter("action");
+            if (!"https".equals(scheme) || !isSiteHost(uri.getHost())) return false;
+            if (path.endsWith("/wp-login.php") || path.endsWith("/wp-admin/admin-ajax.php") || path.endsWith("/wp-admin/admin-post.php")) return false;
+            if ("logout".equalsIgnoreCase(action)) return false;
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private void handleDoubleBackToExit() {
+        long now = SystemClock.uptimeMillis();
+        if (lastBackPressAt > 0 && now - lastBackPressAt <= DOUBLE_BACK_WINDOW_MS) {
+            lastBackPressAt = 0L;
+            Toast.makeText(this, "اپ بندېږي.", Toast.LENGTH_SHORT).show();
+            moveTaskToBack(true);
+        } else {
+            lastBackPressAt = now;
+            Toast.makeText(this, "د اپ د بندولو لپاره یو ځل بیا د شاته تګ تڼۍ کېکاږئ.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
