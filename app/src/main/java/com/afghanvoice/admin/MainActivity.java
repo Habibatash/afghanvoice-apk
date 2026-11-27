@@ -215,7 +215,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
-        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.5");
+        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.6");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
             webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
