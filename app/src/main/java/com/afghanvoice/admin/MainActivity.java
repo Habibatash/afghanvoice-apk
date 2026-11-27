@@ -215,7 +215,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(true);
         settings.setGeolocationEnabled(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
-        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.4");
+        settings.setUserAgentString(settings.getUserAgentString() + " AfghanVoiceAdminAndroid/1.0.5");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings.setSafeBrowsingEnabled(true);
             webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
@@ -263,6 +263,16 @@ public class MainActivity extends Activity {
                     progress.setVisibility(View.GONE);
                     hideSplash();
                     errorPanel.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, android.webkit.WebResourceResponse response) {
+                if (request != null && request.isForMainFrame() && response != null && response.getStatusCode() >= 400) {
+                    progress.setVisibility(View.GONE);
+                    hideSplash();
+                    errorPanel.setVisibility(View.VISIBLE);
+                    Toast.makeText(MainActivity.this, "د پاڼې د پرانیستلو پر مهال د سرور ستونزه رامنځته شوه.", Toast.LENGTH_LONG).show();
                 }
             }
         });
